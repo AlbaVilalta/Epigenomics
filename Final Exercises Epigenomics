@@ -1,0 +1,90 @@
+Final exercises Epigenomics
+
+3. Describe the workflow of a ChIP-seq experiment (experimental part):
+
+To perform the experimental part of a ChIP-seq experiment, first of all cells or tissues are treated with formaldehyde to cross-link all the proteins bound to DNA, together with DNA covalently. After that, cell disruption and sonication, or in some cases enzymatic digestion, are performed to obtain small fragments of chromatin, approximately 300bp fragments. Then, the protein of interest is isolated by performing a purification that includes two steps; first a specific antibody its bounded to the protein of interest and then a second antibody is bounded to the first. Once we have the protein isolated, the cross-links are reversed by warming up everything and a washing step is done. Finally, the fragments of DNA are prepared for high throughput DNA sequencing.
+
+4. Why do we need a control in ChIP-seq experiments?
+
+We need control samples in ChIP-seq experiments for two main reasons. First, we know that DNA breakage by sonication is not uniform due to some regions of open chromatin are preferentially represented in sonication samples while tightly packed regions are shared to a lesser extent. This can lead to false-positive read enrichment in open chromatin regions. Also, controls are important because the nonuniformity of the sample can be increased by the platform-specific sequencing biases. 
+
+5. Explain at which stage of a ChIP-seq processing analysis and how we combine the information of ChIP and control reads. Describe the output files we get if we are using the tool MACS2.
+
+The information of ChIP and control reads is combined in the peak calling step. At this stage, MACS2 tool selects around 1000 of regions, that are consecutive windows of 2 times the bandwith, that have an enrichment of ChIP reads with respect to the control reads. Also, MACS2 takes into account the distribution of reads in the ChIP experiment and in the control to compute the lambda.
+ 
+If we are using MACS2 to perform the peak calling step, we get two kinds of output files. On one hand, we obtain a BED file, which provides information about genomic coordinates of the detected peaks and which is human readable. On the other hand, MACS2 provides three types of dense and continuous signals provided at a nucleotide level, such as pile-up signal, fold change signal and p-value signal. These three files are provided in a non-human readable format called bigWig and have one column that corresponds to the position in the genome and for each one they have associated one type of signal.
+
+6. What is a pipeline? In the case of the ENCODE ChIP-seq pipeline, which steps of the analysis of ChIP-seq data does it contain?
+
+A pipeline is a workflow that concatenates different tasks and allows us to perform these tasks in a continuous manner. The ChIP -seq data steps that ENCODE ChIP-seq pipeline contains are the mapping and the peak calling.  
+
+7. For the same EN-TEx donor that we have used in the hands-on session in class, use the Experiment Search Toolbar from the ENCODE portal to find all released experiments testing chromatin accessibility in stomach and sigmoid_colon (assembly GRCh38).
+
+- Paste here the filters you have applied
+Assay type: DNA accessibility
+Status: Released
+Genome assembly: GRCh38
+Biosample term name: stomach, sigmoid colon
+
+- How many experiments are there?
+There are 4 experiments; one of ATAC-seq and other of DNase-seq for each sample. 
+
+- Paste here the link to download the corresponding metadata file.
+https://www.encodeproject.org/metadata/?type=Experiment&replicates.library.biosample.donor.uuid=d370683e-81e7-473f-8475-7716d027849b&status=released&status=submitted&status=in+progress&assay_slims=DNA+accessibility&biosample_ontology.term_name=stomach&biosample_ontology.term_name=sigmoid+colon
+
+8. Download the metadata retrieved in point 5. Parse it to get:
+
+- File ID of bigWig file for fold-change over control in sigmoid_colon ATAC-seq experiment
+ENCFF997HHO
+
+- File ID of bigWig file for fold-change over control in stomach ATAC-seq experiment
+ENCFF415RKU
+
+- Paste the code used and the corresponding IDs.
+>../bin/download.metadata.sh https://www.encodeproject.org/metadata/?type=Experiment&replicates.library.biosample.donor.uuid=d370683e-81e7-473f-8475-7716d027849b&status=released&status=submitted&status=in+progress&assay_slims=DNA+accessibility&biosample_ontology.term_name=stomach&biosample_ontology.term_name=sigmoid+colon
+> grep -F fold_change_over_control metadata.tsv | grep -F sigmoid_colon   ENCFF997HHO
+ > grep -F fold_change_over_control metadata.tsv | grep -F stomach  ENCFF415RKU
+
+9. What is an aggregation plot?
+
+An aggregation plot is a plot that is useful to inspect the distribution of continuous ChIP-seq signal, such as pile-up, fold-change or p-value, over a set of genomic coordinates provided in BED format.
+
+- Which tool do we use to generate one?
+To generate an aggregation plot, we use R. 
+
+- Which input data do we need?
+We need bigWig files for the signal of interest, Gencode annotations and expression matrices of the tissues to select the most and least expressed genes. 
+
+- Have a look at the aggregation plot done during the hands-on
+- Are the plots consistent between the two tissues?
+- Is this what you would expect, given the relationship between H3K4me3 and gene expression?
+
+- Why is it important to know the approximate location of a specific histone mark with respect to the gene?
+It’s important because when we perform an aggregation plot we need to know where the aggregate signal of the histone is.
+
+10. What type of plot are we using to visualize the correlation between two variables?
+
+To visualize the correlation between two variables we use a scatterplot. 
+
+- Have a look at the plots generated during the hands-on to assess the correlation between expression and H3K4me3
+- Are these results consistent between the two tissues?
+We observe higher values of Pearson’s and Spearman’s correlation coefficients in sigmoid colon than in stomach, specifically 0.51 and 0.74 versus 0.47 and 0.67. Even so, in both tissues we observe that the higher mean H3K4me3 FC signal is around 60 and that most of expression log2 values are between 0 and 4.
+
+- Would you expect this degree of correlation? Formulate an interpretation of the results.
+In both tissues we observe a medium Pearson’s correlation and a high Spearman’s correlation between expression and the levels of H3K4me3 measured around the TSS.
+
+11. During the hands-on session, we have checked the level of expression of genes with tissue-specific H3K4me3 marking.
+
+- Are these results consistent with the degree of correlation we have observed in point 8?
+Yes, these results are consistent with the degree of correlation observed before because we have observed more correlation in sigmoid colon and, as we can see if we compare the two specific marking plots of both tissues, we can observe that there is more signal in sigmoid colon tissue. 
+
+- Do you observe any unexpected behaviour?
+If we look at the sigmoid colon-specific marking plot, we can see that there is some signal in stomach tissue, which is a rare behaviour due to it’s a tissue-specific marking. 
+
+- How would you relate the presence of genes with tissue-specific marking with the GO terms obtained?
+
+12. Have a look at the Venn diagram generated in the last task.
+
+- Comment on the number of peaks shared: is there more sharing between peaks of different type in the same tissue (e.g. H3K4me3 & POLR2A of stomach), or between peaks of the same type in different tissues (e.g. H3K4me3 of stomach and sigmoid colon)?
+For peaks of different type in the same tissue, we observe that H3K4me3 and POLR2A in stomach share 6.332 peaks and in sigmoid colon 9.120 peaks while for peaks of the same type in different tissues, we compute a total of 14.889 peaks shared between H3K4me3 and a total of 5.572 regarding POLR2A type peaks. So, there is more sharing between peaks of the same type in different tissues. 
+
